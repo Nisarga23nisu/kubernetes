@@ -1,4 +1,4 @@
-					    # ConfigMap
+#####################   ConfigMap    #####################
 ubuntu@ip-172-31-45-190:~$ vi cm-1.yaml
                 apiVersion: v1
                 kind: Pod
