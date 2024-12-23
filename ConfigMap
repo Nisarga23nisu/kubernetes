@@ -1,0 +1,195 @@
+					    # ConfigMap
+ubuntu@ip-172-31-45-190:~$ vi cm-1.yaml
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: configmap-demo-1
+                spec:
+                  containers:
+                  - name: demo-container
+                    image: nginx
+                    envFrom:
+                     - configMapRef:
+                        name: configmap-1
+ubuntu@ip-172-31-45-190:~$ kubectl apply -f cm-1.yaml
+pod/configmap-demo-1 created
+
+ubuntu@ip-172-31-45-190:~$ kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+configmap-demo-1          1/1     Running   0          32s
+
+ubuntu@ip-172-31-45-190:~$ kubectl exec -it configmap-demo-1 -- printenv
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=configmap-demo-1
+NGINX_VERSION=1.27.3
+NJS_VERSION=0.8.7
+NJS_RELEASE=1~bookworm
+PKG_RELEASE=1~bookworm
+DYNPKG_RELEASE=1~bookworm
+name=first-configmap
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+TERM=xterm
+HOME=/root
+
+ubuntu@ip-172-31-45-190:~$ kubectl create configmap configmap-2 --from-literal=name=second-configmap --from-literal=color=blue
+configmap/configmap-2 created
+
+ubuntu@ip-172-31-45-190:~$ vi cm-2.yaml
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: configmap-demo-2
+                    spec:
+                      containers:
+                      - name: demo-container
+                        image: nginx
+                        env:
+                        - name: COLOR
+                          valueFrom:
+                            configMapKeyRef:
+                              name: configmap-2
+                              key: color
+ubuntu@ip-172-31-45-190:~$ kubectl apply -f cm-2.yaml
+pod/configmap-demo-2 created
+
+ubuntu@ip-172-31-45-190:~$ kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+configmap-demo-1          1/1     Running   0          15m
+configmap-demo-2          1/1     Running   0          27s
+
+ubuntu@ip-172-31-45-190:~$ kubectl get cm
+NAME               DATA   AGE
+configmap-1        1      30m
+configmap-2        2      6m18s
+kube-root-ca.crt   1      37h
+ubuntu@ip-172-31-45-190:~$ kubectl exec -it configmap-demo-2 -- printenv
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=configmap-demo-2
+NGINX_VERSION=1.27.3
+NJS_VERSION=0.8.7
+NJS_RELEASE=1~bookworm
+PKG_RELEASE=1~bookworm
+DYNPKG_RELEASE=1~bookworm
+COLOR=blue
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+TERM=xterm
+HOME=/root
+
+ubuntu@ip-172-31-45-190:~$ vi data-file
+ubuntu@ip-172-31-45-190:~$ kubectl create configmap configmap-3 --from-file=data-file
+configmap/configmap-3 created
+ubuntu@ip-172-31-45-190:~$ kubectl get cm
+NAME               DATA   AGE
+configmap-1        1      40m
+configmap-2        2      15m
+configmap-3        1      17s
+kube-root-ca.crt   1      37h
+
+ubuntu@ip-172-31-45-190:~$ vi cm-3.yaml
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: configmap-demo-3
+                    spec:
+                      containers:
+                      - name: demo-container
+                        image: nginx
+                        volumeMounts:
+                          - name: config
+                            mountPath: /etc/config
+                      volumes:
+                      - name: config
+                        configMap:
+                          name: configmap-3
+ubuntu@ip-172-31-45-190:~$ kubectl apply -f cm-3.yaml
+pod/configmap-demo-3 created
+ubuntu@ip-172-31-45-190:~$ kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+configmap-demo-1          1/1     Running   0          36m
+configmap-demo-2          1/1     Running   0          21m
+configmap-demo-3          1/1     Running   0          55s
+
+ubuntu@ip-172-31-45-190:~$ kubectl exec -it configmap-demo-3 -- bash
+root@configmap-demo-3:/# cd etc/config/
+root@configmap-demo-3:/etc/config# ls
+data-file
+root@configmap-demo-3:/etc/config# cat data-file 
+username="root"
+password="12345"
+root@configmap-demo-3:/etc/config# exit
+exit
+ubuntu@ip-172-31-45-190:~$ kubectl get cm
+NAME               DATA   AGE
+configmap-1        1      52m
+configmap-2        2      28m
+configmap-3        1      12m
+kube-root-ca.crt   1      37h
+ubuntu@ip-172-31-45-190:~$ kubectl describe cm configmap-1 
+Name:         configmap-1
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+name:
+----
+first-configmap
+
+BinaryData
+====
+
+Events:  <none>
+ubuntu@ip-172-31-45-190:~$ kubectl describe cm configmap-2
+Name:         configmap-2
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+color:
+----
+blue
+name:
+----
+second-configmap
+
+BinaryData
+====
+
+Events:  <none>
+ubuntu@ip-172-31-45-190:~$ kubectl describe cm configmap-3
+Name:         configmap-3
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+data-file:
+----
+username="root"
+password="12345"
+
+
+BinaryData
+====
+
+Events:  <none>
+ubuntu@ip-172-31-45-190:~$ 
+
