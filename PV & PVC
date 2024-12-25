@@ -1,0 +1,30 @@
+# Install Helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+# Create IAM user with access key
+kubectl create secret generic aws-secret \
+    --namespace kube-system \
+    --from-literal "key_id=${AWS_ACCESS_KEY_ID}" \
+    --from-literal "access_key=${AWS_SECRET_ACCESS_KEY}"
+
+# Add the AWS EBS CSI Driver Helm chart repository
+helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+helm repo update
+
+# Deploy the AWS EBS CSI Driver using the following command:
+helm upgrade --install aws-ebs-csi-driver \
+    --namespace kube-system \
+    aws-ebs-csi-driver/aws-ebs-csi-driver
+
+# Verify that the driver has been deployed and the pods are running:
+kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
+
+# Create storageclass, pvc, pod YAML file.
+
+# Verify that the EBS volume has been provisioned and attached to the pod
+kubectl exec -it app -- df -h /data
+
+
+
