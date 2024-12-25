@@ -22,6 +22,45 @@ helm upgrade --install aws-ebs-csi-driver \
 kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
 
 # Create storageclass, pvc, pod YAML file.
+# Storageclass
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+              name: ebs-sc
+            provisioner: ebs.csi.aws.com
+            parameters:
+              type: gp2
+            volumeBindingMode: WaitForFirstConsumer
+# PVC
+            apiVersion: v1
+            kind: PersistentVolumeClaim
+            metadata:
+              name: ebs-claim
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: ebs-sc
+              resources:
+                requests:
+                  storage: 1Gi
+# Pod
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: app
+                spec:
+                  containers:
+                  - name: app
+                    image: centos
+                    command: ["/bin/sh"]
+                    args: ["-c", "while true; do echo $(date -u) >> /data/out.txt; sleep 5; done"]
+                    volumeMounts:
+                    - name: persistent-storage
+                      mountPath: /data
+                  volumes:
+                  - name: persistent-storage
+                    persistentVolumeClaim:
+                      claimName: ebs-claim
 
 # Verify that the EBS volume has been provisioned and attached to the pod
 kubectl exec -it app -- df -h /data
