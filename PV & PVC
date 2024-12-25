@@ -31,6 +31,10 @@ kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
             parameters:
               type: gp2
             volumeBindingMode: WaitForFirstConsumer
+ubuntu@ip-172-31-45-190:~$ kubectl get storageclass
+NAME     PROVISIONER       RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+ebs-sc   ebs.csi.aws.com   Delete          WaitForFirstConsumer   false                  18m
+
 # PVC
             apiVersion: v1
             kind: PersistentVolumeClaim
@@ -43,6 +47,10 @@ kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
               resources:
                 requests:
                   storage: 1Gi
+ubuntu@ip-172-31-45-190:~$ kubectl get pvc
+NAME        STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+ebs-claim   Pending                                      ebs-sc         <unset>                 8s
+
 # Pod
                 apiVersion: v1
                 kind: Pod
@@ -61,9 +69,14 @@ kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
                   - name: persistent-storage
                     persistentVolumeClaim:
                       claimName: ebs-claim
+ubuntu@ip-172-31-45-190:~$ kubectl get pod
+NAME                      READY   STATUS              RESTARTS       AGE
+app                       0/1     ContainerCreating   0              6s
 
 # Verify that the EBS volume has been provisioned and attached to the pod
 kubectl exec -it app -- df -h /data
-
+ubuntu@ip-172-31-45-190:~$ kubectl exec -it app -- df -h /data
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvdaa      974M   28K  958M   1% /data
 
 
