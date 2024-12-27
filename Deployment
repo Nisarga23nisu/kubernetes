@@ -1,0 +1,55 @@
+# Question 1: Create a deployment named my-deploy with the image nginx.
+      kubectl create deployment my-deploy --image=nginx
+      deployment.apps/my-deploy created
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME                        READY   STATUS    RESTARTS   AGE
+      my-deploy-df58d4976-4w7j4   1/1     Running   0          11s
+      red                         1/1     Running   0          92m
+
+# Question 2: Scale my-deploy to 3 replicas.
+      kubectl scale deployment my-deploy --replicas=3
+      deployment.apps/my-deploy scaled
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME                        READY   STATUS    RESTARTS   AGE
+      my-deploy-df58d4976-24c8k   1/1     Running   0          3s
+      my-deploy-df58d4976-4w7j4   1/1     Running   0          32s
+      my-deploy-df58d4976-h6f62   1/1     Running   0          3s
+      red                         1/1     Running   0          93m
+
+# Question 3: Replace the image in my-deploy from nginx to nginx:alpine.
+      kubectl set image deployment my-deploy nginx=nginx:alpine
+      deployment.apps/my-deploy image updated
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME                        READY   STATUS              RESTARTS   AGE
+      my-deploy-7bb7bb657-476wc   1/1     Running             0          16s
+      my-deploy-7bb7bb657-dzx9g   1/1     Running             0          9s
+      my-deploy-7bb7bb657-p8fxr   0/1     ContainerCreating   0          2s
+      my-deploy-df58d4976-4w7j4   1/1     Running             0          65s
+      red                         1/1     Running             0          93m
+
+# Question 4: Scale down the replicas of my-deploy to 2.
+      kubectl scale deployment my-deploy --replicas=2
+      deployment.apps/my-deploy scaled
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME                        READY   STATUS    RESTARTS   AGE
+      my-deploy-7bb7bb657-476wc   1/1     Running   0          31s
+      my-deploy-7bb7bb657-dzx9g   1/1     Running   0          24s
+      red                         1/1     Running   0          94m
+
+# Question 5: Rollback to the previous version of my-deploy.
+      kubectl rollout undo deployment my-deploy
+      deployment.apps/my-deploy rolled back
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME                        READY   STATUS              RESTARTS   AGE
+      my-deploy-7bb7bb657-476wc   1/1     Running             0          52s
+      my-deploy-7bb7bb657-dzx9g   0/1     Terminating         0          45s
+      my-deploy-df58d4976-7c4tl   0/1     ContainerCreating   0          0s
+      my-deploy-df58d4976-mjc4q   1/1     Running             0          3s
+      red                         1/1     Running             0          94m
+
+# Question 6: Delete the deployment, replicaset, and pod created by my-deploy.
+      kubectl delete deployment my-deploy
+      deployment.apps "my-deploy" deleted
+      ubuntu@ip-172-31-45-190:~$ kubectl get pods
+      NAME   READY   STATUS    RESTARTS   AGE
+      red    1/1     Running   0          94m
