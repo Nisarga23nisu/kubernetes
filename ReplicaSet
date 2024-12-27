@@ -32,4 +32,8 @@ Open the file and add the following YAML content:
 kubectl delete pod <pod-name>
 
 # Question 4: Delete the Replicaset
-kubectl delete replicaset myfirstrs
+    kubectl delete replicaset myfirstrs
+    replicaset.apps "myfirstrs" deleted
+    kubectl get pods
+    NAME   READY   STATUS    RESTARTS   AGE
+    red    1/1     Running   0          67m
