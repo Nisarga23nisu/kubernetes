@@ -1,0 +1,21 @@
+# Question 1: Create a namespace named "my-first-ns".
+      kubectl create namespace my-first-ns
+      namespace/my-first-ns created
+      
+      ubuntu@ip-172-31-45-190:~$ kubectl get ns
+      NAME              STATUS   AGE
+      default           Active   5d12h
+      kube-node-lease   Active   5d12h
+      kube-public       Active   5d12h
+      kube-system       Active   5d12h
+      my-first-ns       Active   18s
+
+# Question 2: Create a pod named "red" with the image "nginx" within the "my-first-ns" namespace.
+      kubectl create pod red --image=nginx --namespace=my-first-ns
+
+# Question 3: Count all the pods across all namespaces
+      kubectl get pods --all-namespaces --no-headers | wc -l
+
+# Question 4: Permanently switch the namespace to "my-first-ns"
+      kubectl config set-context --current --namespace=my-first-ns
+Context "kubernetes-admin@kubernetes" modified.
