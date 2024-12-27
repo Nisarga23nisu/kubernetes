@@ -1,0 +1,35 @@
+# Question 1: Create a Replicaset with 1 replica
+To create a Replicaset named "myfirstrs" with the Nginx image and 1 replica using the declarative way, follow these steps:
+Create a YAML file, e.g., myfirstrs.yaml.
+Open the file and add the following YAML content:
+              apiVersion: apps/v1
+              kind: ReplicaSet
+              metadata:
+                name: myfirstrs
+              spec:
+                replicas: 1
+                selector:
+                  matchLabels:
+                    app: myfirstrs
+                template:
+                  metadata:
+                    labels:
+                      app: myfirstrs
+                  spec:
+                    containers:
+                    - name: nginx
+                      image: nginx
+    kubectl apply -f myfirstrs.yaml
+    kubectl get pods
+    NAME              READY   STATUS    RESTARTS   AGE
+    myfirstrs         1/1     Running   0          2m30s
+    red               1/1     Running   0          53m
+# Question 2: Scale the Replicaset to 5 pods
+      kubectl scale replicaset myfirstrs --replicas=5
+      replicaset.apps/myfirstrs scaled
+
+# Question 3: Delete one of the pods
+kubectl delete pod <pod-name>
+
+# Question 4: Delete the Replicaset
+kubectl delete replicaset myfirstrs
