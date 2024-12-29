@@ -1,7 +1,8 @@
 # Question 1: Create two pods named "blue" and "red" using nginx image. The "blue" pod should be exposed on port 80.
-kubectl run blue --image=nginx --port=80
+kubectl run blue --image=nginx --restart=Never
 pod/blue created
-
+kubectl run blue --image=nginx --port=80 --restart=Never
+pod/blue created
 kubectl get pods
 NAME   READY   STATUS    RESTARTS   AGE
 blue   1/1     Running   0          22s
@@ -13,34 +14,47 @@ pod/red created
 # Question 2: Create a nodeport service to expose the "blue" pod. The service should allow external access to the pod on the same port (port 80).
 kubectl expose pod blue --type=NodePort --port=80
 service/blue exposed
-
-kubectl get pods
-NAME   READY   STATUS    RESTARTS   AGE
-blue   1/1     Running   0          80s
-red    1/1     Running   0          37s
+kubectl get svc
+NAME   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+blue   NodePort   10.98.221.86   <none>        80:31580/TCP   13s
+....Check in browser for IPaddress:31580 nginx webpage will be seen.........
 
 # Question 3: Create a clusterip service to expose the "red" pod. This service allows internal access within the Kubernetes cluster.
 kubectl expose pod red --type=ClusterIP --port=80
 service/red exposed
+kubectl get svc
+NAME   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+blue   NodePort    10.98.221.86     <none>        80:31580/TCP   7m30s
+red    ClusterIP   10.104.200.214   <none>        80/TCP         15s
 
 # Question 4: Delete the nodeport service that was created for the "blue" pod.
 kubectl delete service blue
 service "blue" deleted
 
 # Question 5: Recreate a nodeport service for the "blue" pod, this time using the following custom port settings:
-vi blue-service.yaml
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: blue-service
-        spec:
-          selector:
-            app: blue
-          type: NodePort
-          ports:
-            - port: 8080
-              targetPort: 80
-              nodePort: 32711
-kubectl apply -f blue-service.yaml
-service/blue-service created
-
+kubectl expose pod blue --type=NodePort --name=new-blue-new --dry-run=client -o yaml > service23.yaml
+kubectl create -f service23.yaml 
+service/new-blue-new created
+kubectl get svc
+NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+new-blue-new   NodePort    10.100.229.87    <none>        80:32711/TCP     15s
+red            ClusterIP   10.104.200.214   <none>        80/TCP           24m
+cat service23.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    run: blue
+  name: new-blue
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 80
+    nodePort: 32711
+  selector:
+    run: blue
+  type: NodePort
+status:
+  loadBalancer: {}
