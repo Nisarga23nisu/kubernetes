@@ -58,3 +58,4 @@ spec:
   type: NodePort
 status:
   loadBalancer: {}
+....Check in browser for IPaddress:31580 nginx webpage will be seen.........
